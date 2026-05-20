@@ -156,6 +156,42 @@
             50% { opacity: 0.9; }
         }
 
+        /* 背景音乐开关 */
+        .music-toggle {
+            position: fixed;
+            top: max(12px, env(safe-area-inset-top, 0px));
+            right: max(12px, env(safe-area-inset-right, 0px));
+            z-index: 10001;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.28);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-size: 1.15rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.25s, transform 0.25s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .music-toggle:hover {
+            background: rgba(255, 107, 157, 0.28);
+            border-color: rgba(255, 182, 210, 0.55);
+        }
+
+        .music-toggle.off {
+            opacity: 0.55;
+        }
+
+        .music-toggle.missing {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
         /* ==================== 星空场景（Flex 全屏布局） ==================== */
         .starfield {
             position: fixed;
@@ -700,6 +736,12 @@
     </style>
 </head>
 <body>
+    <!-- 背景音乐：请将抒情纯音乐命名为 bg.mp3 放入 music 文件夹 -->
+    <audio id="bgMusic" loop preload="auto" playsinline webkit-playsinline>
+        <source src="music/bg.mp3" type="audio/mpeg">
+    </audio>
+    <button class="music-toggle" id="musicToggle" type="button" aria-label="背景音乐" title="背景音乐">🎵</button>
+
     <!-- 开场：轻触星光 -->
     <div class="intro-scene" id="introScene">
         <div id="introStars" aria-hidden="true"></div>
@@ -882,6 +924,14 @@
         let autoPlayInterval = null;
         let isTyping = false;
         let autoRevealScheduled = false;
+
+        const bgMusic = document.getElementById('bgMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const MUSIC_TARGET_VOLUME = 0.42;
+        let musicStarted = false;
+        let musicWanted = true;
+        let musicAvailable = true;
+        let musicFadeTimer = null;
 
         // ==================== 初始化 ====================
         function init() {
@@ -1083,7 +1133,90 @@
             }
         }
 
+        function updateMusicToggleUI() {
+            if (!musicToggle) return;
+            if (!musicAvailable) {
+                musicToggle.textContent = '🔇';
+                musicToggle.classList.add('missing', 'off');
+                musicToggle.title = '未找到 music/bg.mp3';
+                return;
+            }
+            musicToggle.classList.remove('missing');
+            const playing = musicStarted && bgMusic && !bgMusic.paused;
+            musicToggle.textContent = playing ? '🎵' : '🔇';
+            musicToggle.classList.toggle('off', !playing);
+            musicToggle.title = playing ? '点击关闭音乐' : '点击开启音乐';
+        }
+
+        function fadeBgMusicTo(target, durationMs) {
+            if (!bgMusic || !musicStarted) return;
+            if (musicFadeTimer) clearInterval(musicFadeTimer);
+            const start = bgMusic.volume;
+            const steps = Math.max(8, Math.floor(durationMs / 80));
+            let step = 0;
+            musicFadeTimer = setInterval(() => {
+                step++;
+                bgMusic.volume = start + (target - start) * (step / steps);
+                if (step >= steps) {
+                    bgMusic.volume = target;
+                    clearInterval(musicFadeTimer);
+                    musicFadeTimer = null;
+                }
+            }, durationMs / steps);
+        }
+
+        function startBgMusic() {
+            if (!bgMusic || !musicWanted || musicStarted) return;
+            bgMusic.volume = 0;
+            const playPromise = bgMusic.play();
+            if (!playPromise) return;
+            playPromise.then(() => {
+                musicStarted = true;
+                musicAvailable = true;
+                fadeBgMusicTo(MUSIC_TARGET_VOLUME, 2200);
+                updateMusicToggleUI();
+            }).catch(() => {
+                musicAvailable = false;
+                updateMusicToggleUI();
+            });
+        }
+
+        function toggleBgMusic() {
+            if (!musicAvailable) return;
+            if (!musicStarted) {
+                musicWanted = true;
+                startBgMusic();
+                return;
+            }
+            if (bgMusic.paused) {
+                musicWanted = true;
+                bgMusic.play().then(() => {
+                    fadeBgMusicTo(MUSIC_TARGET_VOLUME, 600);
+                    updateMusicToggleUI();
+                }).catch(() => updateMusicToggleUI());
+            } else {
+                musicWanted = false;
+                bgMusic.pause();
+                updateMusicToggleUI();
+            }
+        }
+
+        if (musicToggle) {
+            musicToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleBgMusic();
+            });
+        }
+        if (bgMusic) {
+            bgMusic.addEventListener('error', () => {
+                musicAvailable = false;
+                updateMusicToggleUI();
+            });
+        }
+        updateMusicToggleUI();
+
         function enterStarfield() {
+            startBgMusic();
             document.getElementById('introScene').classList.add('opened');
             setTimeout(() => {
                 document.getElementById('starfield').classList.add('active');
