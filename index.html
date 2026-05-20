@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🌟 今夜这片星空</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            height: 100%;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', 'Microsoft YaHei', serif;
+            background: #0a0a0a;
+            height: 100%;
+            min-height: 100vh;
+            min-height: 100dvh;
+            min-height: -webkit-fill-available;
+            overflow: hidden;
+            color: white;
+        }
+
+        /* ==================== 开场：轻触星光进入 ==================== */
+        .intro-scene {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 1.2s ease, transform 1.2s ease;
+            overflow: hidden;
+        }
+
+        .intro-scene.opened {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        #introStars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .intro-bg-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.35;
+            animation: introTwinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes introTwinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 0.75; }
+        }
+
+        .intro-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .intro-eyebrow {
+            font-size: 0.9rem;
+            letter-spacing: 0.35em;
+            color: rgba(255, 182, 210, 0.75);
+            margin-bottom: 12px;
+        }
+
+        .intro-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(2rem, 8vw, 2.8rem);
+            color: #ffe8f2;
+            margin-bottom: 14px;
+            text-shadow: 0 0 28px rgba(255, 107, 157, 0.45);
+        }
+
+        .intro-desc {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.65);
+            margin-bottom: 48px;
+            line-height: 1.6;
+        }
+
+        .intro-star-btn {
+            position: relative;
+            width: 88px;
+            height: 88px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .intro-star-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 14px;
+            height: 14px;
+            margin: -7px 0 0 -7px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 16px white, 0 0 32px #ff6b9d, 0 0 48px rgba(255, 107, 157, 0.6);
+            animation: introStarPulse 2.2s ease-in-out infinite;
+        }
+
+        .intro-star-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 200, 220, 0.35);
+            animation: introRing 2.2s ease-in-out infinite;
+        }
+
+        @keyframes introStarPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
+        @keyframes introRing {
+            0%, 100% { transform: scale(0.85); opacity: 0.5; }
+            50% { transform: scale(1.08); opacity: 0.9; }
+        }
+
+        .intro-hint {
+            margin-top: 36px;
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.55);
+            animation: introHintPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes introHintPulse {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.9; }
+        }
+
+        /* ==================== 星空场景（Flex 全屏布局） ==================== */
+        .starfield {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            height: -webkit-fill-available;
+            background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .starfield.active {
+            display: flex;
+        }
+
+        /* 上部：星空 + 星座 */
+        .sky-panel {
+            flex: 1 1 auto;
+            min-height: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: calc(12px + env(safe-area-inset-top, 0px)) 12px 8px;
+        }
+
+        #bgStars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        /* 下部：文字 + 进度 + 按钮 */
+        .bottom-panel {
+            flex: 0 0 auto;
+            width: 100%;
+            padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px));
+            background: linear-gradient(to top, rgba(9, 10, 15, 0.92) 0%, rgba(9, 10, 15, 0.6) 70%, transparent 100%);
+            z-index: 100;
+        }
+
+        /* 背景星星（装饰用） */
+        .bg-star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* 星座区域：略竖长、偏宽，整体更大 */
+        .constellation-area {
+            position: relative;
+            width: min(92vw, 440px);
+            max-width: 100%;
+            aspect-ratio: 1 / 1;
+            max-height: min(64vh, 480px);
+            height: auto;
+            flex-shrink: 1;
+            z-index: 5;
+        }
+
+        .constellation-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .constellation-svg line {
+            stroke: rgba(255, 200, 220, 0.5);
+            stroke-width: 1.2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0;
+            transition: stroke-dashoffset 0.55s ease-out, opacity 0.25s ease;
+        }
+
+        .constellation-svg line.draw {
+            opacity: 1;
+        }
+
+        #mainStars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+        }
+
+        /* 主要星星 */
+        .main-star {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            margin-left: -5px;
+            margin-top: -5px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white, 0 0 20px white, 0 0 30px #ff6b9d;
+            opacity: 0;
+            transform: scale(0);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .main-star.active {
+            opacity: 1;
+            transform: scale(1);
+            animation: starTwinkle 2.4s ease-in-out infinite;
+        }
+
+        @keyframes starTwinkle {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+                box-shadow: 0 0 8px #fff, 0 0 18px #fff, 0 0 28px rgba(255, 182, 210, 0.75);
+            }
+            25% {
+                opacity: 0.7;
+                transform: scale(0.88);
+                box-shadow: 0 0 4px #fff, 0 0 10px rgba(255, 182, 210, 0.45);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.12);
+                box-shadow: 0 0 14px #fff, 0 0 32px #fff, 0 0 48px rgba(255, 107, 157, 0.95);
+            }
+            75% {
+                opacity: 0.82;
+                transform: scale(0.95);
+                box-shadow: 0 0 10px #fff, 0 0 22px rgba(255, 200, 220, 0.65);
+            }
+        }
+
+        /* 连线 */
+        .constellation-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 107, 157, 0.6), transparent);
+            transform-origin: left center;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .constellation-line.active {
+            opacity: 1;
+        }
+
+        /* 流星 */
+        .shooting-star {
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, white, transparent);
+            animation: shoot 2s linear;
+            opacity: 0;
+        }
+
+        @keyframes shoot {
+            0% { transform: translateX(-100px) translateY(100px); opacity: 1; }
+            100% { transform: translateX(100vw) translateY(-100px); opacity: 0; }
+        }
+
+        /* ==================== 文字区域 ==================== */
+        .text-display {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto 12px;
+            text-align: center;
+            min-height: 4.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .text-line {
+            font-family: 'Ma Shan Zheng', 'Microsoft YaHei', cursive;
+            font-size: clamp(1.1rem, 4.5vw, 1.8rem);
+            color: white;
+            text-shadow: 0 0 20px rgba(255, 107, 157, 0.8), 0 0 40px rgba(255, 107, 157, 0.4);
+            line-height: 1.6;
+            opacity: 0;
+            animation: textGlow 3s ease-in-out infinite;
+            word-break: keep-all;
+            padding: 0 12px;
+        }
+
+        @keyframes textGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 107, 157, 0.8), 0 0 40px rgba(255, 107, 157, 0.4); }
+            50% { text-shadow: 0 0 30px rgba(255, 107, 157, 1), 0 0 60px rgba(255, 107, 157, 0.6); }
+        }
+
+        .text-line.show {
+            opacity: 1;
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1.2em;
+            background: #ff6b9d;
+            margin-left: 5px;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ==================== 控制按钮 ==================== */
+        .controls {
+            position: relative;
+            display: flex;
+            flex-wrap: nowrap;
+            justify-content: center;
+            align-items: stretch;
+            gap: 8px;
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .control-btn {
+            flex: 1 1 0;
+            min-width: 0;
+            padding: 12px 10px;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            writing-mode: horizontal-tb;
+            letter-spacing: 0;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 107, 157, 0.3);
+            border-color: #ff6b9d;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            position: relative;
+            width: 100%;
+            max-width: 280px;
+            height: 4px;
+            margin: 0 auto 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b9d, #ffd93d);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* ==================== 最终告白卡片 ==================== */
+        .final-card {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+            overflow: hidden;
+        }
+
+        .final-card.active {
+            display: flex;
+        }
+
+        /* A：飘落花瓣（覆盖在卡片之上，半透明不挡阅读） */
+        .petal-overlay {
+            position: absolute;
+            inset: 0;
+            z-index: 50;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .card-petal {
+            position: absolute;
+            top: 0;
+            width: 16px;
+            height: 22px;
+            border-radius: 50% 50% 50% 0;
+            background: linear-gradient(150deg, #ffe8f2 0%, #ff8eb8 50%, #ff6b9d 100%);
+            border: 1px solid rgba(255, 220, 235, 0.8);
+            box-shadow: 0 0 14px rgba(255, 120, 170, 0.9);
+            opacity: 0.85;
+            will-change: top, transform, opacity;
+        }
+
+        /* 不支持 Web Animations API 时的回退 */
+        @keyframes petalFallSimple {
+            0% { top: -5%; opacity: 0.9; transform: rotate(0deg); }
+            100% { top: 105%; opacity: 0.35; transform: rotate(360deg); }
+        }
+
+        .card-petal.fallback-anim {
+            animation: petalFallSimple 8s linear infinite;
+        }
+
+        /* C：底部线描小花，慢速依次绽开 */
+        .card-bloom {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: clamp(22px, 7vw, 36px);
+            margin: 4px 0 16px;
+            pointer-events: none;
+            position: relative;
+            z-index: 2;
+        }
+
+        .bloom-flower {
+            width: clamp(36px, 10vw, 48px);
+            height: auto;
+            opacity: 0;
+            transform: scale(0.1) translateY(18px);
+            transform-origin: center bottom;
+        }
+
+        .bloom-flower .flower-line {
+            stroke: rgba(255, 195, 215, 0.9);
+            stroke-width: 1.3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            fill: none;
+        }
+
+        .bloom-flower .flower-center {
+            stroke: rgba(255, 220, 185, 0.85);
+            stroke-width: 1.1;
+            fill: rgba(255, 220, 185, 0.12);
+        }
+
+        .final-card.active .bloom-flower {
+            animation: flowerBloom 2.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .final-card.active .bloom-flower:nth-child(1) { animation-delay: 0.5s; }
+        .final-card.active .bloom-flower:nth-child(2) { animation-delay: 1.4s; }
+        .final-card.active .bloom-flower:nth-child(3) { animation-delay: 2.3s; }
+
+        @keyframes flowerBloom {
+            0% {
+                opacity: 0;
+                transform: scale(0.08) translateY(20px);
+            }
+            70% {
+                opacity: 0.95;
+                transform: scale(1.04) translateY(-2px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: linear-gradient(165deg, rgba(27, 39, 53, 0.94) 0%, rgba(12, 16, 28, 0.98) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 20px;
+            padding: 26px 22px 22px;
+            width: min(94vw, 400px);
+            max-width: 400px;
+            max-height: min(88dvh, 720px);
+            text-align: center;
+            animation: cardAppear 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow:
+                0 24px 60px rgba(0, 0, 0, 0.55),
+                0 0 48px rgba(255, 107, 157, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .card-content::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background:
+                radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.5), transparent),
+                radial-gradient(1px 1px at 78% 22%, rgba(255, 255, 255, 0.4), transparent),
+                radial-gradient(1px 1px at 45% 8%, rgba(255, 255, 255, 0.35), transparent),
+                radial-gradient(1px 1px at 88% 65%, rgba(255, 255, 255, 0.45), transparent),
+                radial-gradient(1px 1px at 22% 72%, rgba(255, 255, 255, 0.35), transparent),
+                radial-gradient(ellipse at 50% 0%, rgba(255, 107, 157, 0.08) 0%, transparent 55%);
+            pointer-events: none;
+        }
+
+        .card-scroll {
+            position: relative;
+            z-index: 10;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @keyframes cardAppear {
+            0% { transform: scale(0.5) rotate(-10deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .card-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: clamp(1.75rem, 6vw, 2.35rem);
+            color: #ffe8f2;
+            margin-bottom: 18px;
+            text-shadow: 0 0 24px rgba(255, 107, 157, 0.45);
+        }
+
+        .card-text {
+            font-size: clamp(0.92rem, 3.6vw, 1.02rem);
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.72;
+            margin-bottom: 18px;
+            word-break: keep-all;
+            text-align: center;
+        }
+
+        .card-text p {
+            margin: 0 0 10px;
+        }
+
+        .card-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-highlight {
+            color: #ffb8d0;
+            font-weight: bold;
+            font-size: 1.3rem;
+            text-shadow: 0 0 14px rgba(255, 107, 157, 0.4);
+        }
+
+        .card-btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-btn:hover {
+            background: rgba(255, 107, 157, 0.28);
+            border-color: #ff6b9d;
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(255, 107, 157, 0.25);
+        }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 600px) {
+            .intro-star-btn { width: 76px; height: 76px; }
+            .intro-desc { margin-bottom: 36px; }
+            .opening-title { font-size: 2rem; }
+            .control-btn {
+                padding: 12px 4px;
+                font-size: 0.78rem;
+                border-radius: 16px;
+            }
+            .card-content {
+                padding: 22px 18px 18px;
+                width: min(94vw, 380px);
+                max-height: 86dvh;
+            }
+            .card-title { font-size: 1.65rem; margin-bottom: 14px; }
+            .card-text { line-height: 1.68; margin-bottom: 14px; }
+            .card-text p { margin-bottom: 8px; }
+        }
+
+        /* 矮屏 / 横屏：压缩底部，星座仍居中 */
+        @media (max-height: 700px) {
+            .constellation-area {
+                width: min(88vw, 380px);
+                aspect-ratio: 5 / 2.4;
+            }
+            .text-display { min-height: 3.2em; }
+            .text-line { font-size: clamp(1rem, 4vw, 1.4rem); }
+            .bottom-panel { padding-top: 8px; }
+            .control-btn { padding: 10px 4px; font-size: 0.75rem; }
+        }
+
+        @media (max-height: 580px) {
+            .sky-panel { padding-top: 8px; }
+            .constellation-area { width: min(85vw, 340px); }
+            .text-display { min-height: 2.8em; margin-bottom: 8px; }
+            .progress-bar { margin-bottom: 8px; }
+        }
+
+        /* 超窄屏 */
+        @media (max-width: 360px) {
+            .control-btn { font-size: 0.72rem; padding: 11px 2px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 开场：轻触星光 -->
+    <div class="intro-scene" id="introScene">
+        <div id="introStars" aria-hidden="true"></div>
+        <div class="intro-content">
+            <p class="intro-eyebrow">5 2 0</p>
+            <h1 class="intro-title">今夜这片星空</h1>
+            <p class="intro-desc">为你藏了一片特别的星空</p>
+            <button class="intro-star-btn" id="introStarBtn" type="button" aria-label="进入星空">
+                <span class="intro-star-ring"></span>
+                <span class="intro-star-core"></span>
+            </button>
+            <p class="intro-hint">轻触星光，开始</p>
+        </div>
+    </div>
+
+    <!-- 星空场景 -->
+    <div class="starfield" id="starfield">
+        <div class="sky-panel">
+            <div id="bgStars"></div>
+            <div class="constellation-area" id="constellationArea">
+                <svg class="constellation-svg" id="constellationSvg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+                <div id="mainStars"></div>
+            </div>
+        </div>
+        <div class="bottom-panel">
+            <div class="text-display">
+                <div class="text-line" id="textLine"></div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="controls" id="controls" style="display: none;">
+                <button class="control-btn" id="playBtn" onclick="togglePlay()">暂停</button>
+                <button class="control-btn" onclick="nextLine()">下一句</button>
+                <button class="control-btn" onclick="skipToEnd()">结尾</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 最终告白卡片 -->
+    <div class="final-card" id="finalCard">
+        <div class="card-content">
+            <div class="card-scroll">
+            <h2 class="card-title">宝宝，520 快乐</h2>
+            <div class="card-text">
+                <p>从二月遇见你的那天起</p>
+                <p>你走进我的生活，像一颗温柔的星</p>
+                <p>你说你喜欢花，但我还是想送你这片星空，因为我想让你知道，你在我心中有多重要</p>
+                <p>每一颗星，都是一句句没有当着你面说的心里话</p>
+                <p>它们连成这一颗 <span class="card-highlight">心</span>，只为你跳动</p>
+                <p>你在心里给我的 <span class="card-highlight">96 分</span>，我珍惜，也当作继续向前的理由</p>
+                <p>但喜欢你，不该只停在分数里</p>
+                <p>所以我想，很认真地、正式地告诉你——</p>
+                <p><span class="card-highlight">我喜欢你。</span></p>
+                <p>喜欢你的温柔，也喜欢你会闹小脾气、会钻牛角尖的样子</p>
+                <p>想要做你的倚靠，接住你的开心，也接住你的难过</p>
+                <p>愿意一直向你走近，直到成为你心里的那个满分</p>
+                <p><span class="card-highlight">宝宝，我喜欢你。520 快乐。</span></p>
+                <p>—— 你的天天</p>
+            </div>
+            <div class="card-bloom" aria-hidden="true">
+                <svg class="bloom-flower" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse class="flower-line" cx="20" cy="11" rx="4.5" ry="8" transform="rotate(0 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="11" rx="4.5" ry="8" transform="rotate(72 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="11" rx="4.5" ry="8" transform="rotate(144 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="11" rx="4.5" ry="8" transform="rotate(216 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="11" rx="4.5" ry="8" transform="rotate(288 20 22)"/>
+                    <circle class="flower-center" cx="20" cy="23" r="3.2"/>
+                    <path class="flower-line" d="M20 26 L20 44"/>
+                    <path class="flower-line" d="M20 38 Q15 41 12 43"/>
+                </svg>
+                <svg class="bloom-flower" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse class="flower-line" cx="20" cy="10" rx="5.5" ry="9" transform="rotate(18 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="10" rx="5.5" ry="9" transform="rotate(90 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="10" rx="5.5" ry="9" transform="rotate(162 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="10" rx="5.5" ry="9" transform="rotate(234 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="10" rx="5.5" ry="9" transform="rotate(306 20 22)"/>
+                    <circle class="flower-center" cx="20" cy="22" r="3.6"/>
+                    <path class="flower-line" d="M20 25 L20 46"/>
+                    <path class="flower-line" d="M20 40 Q25 43 28 45"/>
+                </svg>
+                <svg class="bloom-flower" viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg">
+                    <ellipse class="flower-line" cx="20" cy="12" rx="4" ry="7" transform="rotate(0 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="12" rx="4" ry="7" transform="rotate(72 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="12" rx="4" ry="7" transform="rotate(144 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="12" rx="4" ry="7" transform="rotate(216 20 22)"/>
+                    <ellipse class="flower-line" cx="20" cy="12" rx="4" ry="7" transform="rotate(288 20 22)"/>
+                    <circle class="flower-center" cx="20" cy="24" r="2.8"/>
+                    <path class="flower-line" d="M20 27 L20 42"/>
+                </svg>
+            </div>
+            <button class="card-btn" onclick="restart()">✨ 再看一次星空</button>
+            </div>
+        </div>
+        <div class="petal-overlay" id="petalOverlay" aria-hidden="true"></div>
+    </div>
+
+    <script>
+
+        // ==================== 数据配置 ====================
+        const messages = [
+            "宝宝，今天是520",
+            "我想送你一片特别的星空",
+            "今夜，我想用星星，一句一句告诉你",
+            "从2月10日遇见你的那天起",
+            "我的世界开始变得不一样",
+            "你发来的每条消息，我都会开心好久",
+            "你叫我'天天'的时候，我觉得特别幸福",
+            "想为你学很多很多首歌",
+            "每一首，都是唱给你的",
+            "你说'你完蛋了'的时候",
+            "我觉得完蛋就完蛋吧，为了你值得",
+            "想陪你聊到深夜",
+            "哪怕第二天会困，也心甘情愿",
+            "你的笑容像阳光",
+            "照亮了我原本平淡的日子",
+            "想做一个能让你依靠的人",
+            "想接住你所有的情绪",
+            "开心的、难过的、生气的",
+            "每一种样子的你，我都想好好珍惜",
+            "你说过我是你的下雨天先生",
+            "那我愿意一辈子为你遮风挡雨",
+            "96分不是终点",
+            "我会继续努力",
+            "直到有一天",
+            "和你真真正正的在一起，白头偕老，直到永远",
+            "宝宝，520快乐",
+            "这片星空，只为你而亮"
+        ];
+
+        // 心形：宽度保持，纵向略加长
+        const HEART_STAR_COUNT = 32;
+
+        function generateHeartPoints(count) {
+            const points = [];
+            const cx = 50;
+            const cy = 50;
+            const scaleX = 2.42;
+            const scaleY = 2.66;
+
+            for (let i = 0; i < count; i++) {
+                const t = (i / count) * Math.PI * 2;
+                const sinT = Math.sin(t);
+                const rawX = 16 * sinT * sinT * sinT;
+                const rawY = -(
+                    13 * Math.cos(t) -
+                    5 * Math.cos(2 * t) -
+                    2 * Math.cos(3 * t) -
+                    Math.cos(4 * t)
+                );
+                points.push({
+                    x: Math.round((cx + rawX * scaleX) * 10) / 10,
+                    y: Math.round((cy + rawY * scaleY) * 10) / 10
+                });
+            }
+            return points;
+        }
+
+        function buildConstellationData() {
+            const starPositions = generateHeartPoints(HEART_STAR_COUNT);
+            const starLineGroups = [
+                Array.from({ length: HEART_STAR_COUNT }, (_, i) => i)
+            ];
+            return { starPositions, starLineGroups };
+        }
+
+        const { starPositions, starLineGroups } = buildConstellationData();
+
+        // 已点亮的星星（随机顺序，与话术进度同步）
+        const litStarSet = new Set();
+        let heartLinesConnected = false;
+        let isDrawingHeart = false;
+        let heartConnectTimer = null;
+        const LINE_STAGGER_MS = 110;
+        const LINE_DRAW_MS = 550;
+        const CONNECT_PAUSE_MS = 350;
+
+        let currentIndex = 0;
+        let isPlaying = false;
+        let autoPlayInterval = null;
+        let isTyping = false;
+        let autoRevealScheduled = false;
+
+        // ==================== 初始化 ====================
+        function init() {
+            createBgStars();
+            createMainStars();
+            createConstellationLines();
+        }
+
+        function createBgStars() {
+            const container = document.getElementById('bgStars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'bg-star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = (Math.random() * 58 + 2) + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        function createMainStars() {
+            const container = document.getElementById('mainStars');
+            container.innerHTML = '';
+            starPositions.forEach((pos, i) => {
+                const star = document.createElement('div');
+                star.className = 'main-star';
+                star.id = 'star-' + i;
+                star.style.left = pos.x + '%';
+                star.style.top = pos.y + '%';
+                star.style.transitionDelay = (i * 0.03) + 's';
+                container.appendChild(star);
+            });
+        }
+
+        function createConstellationLines() {
+            const svg = document.getElementById('constellationSvg');
+            svg.innerHTML = '';
+            let lineIndex = 0;
+            starLineGroups.forEach((group) => {
+                for (let i = 0; i < group.length - 1; i++) {
+                    addLine(svg, group[i], group[i + 1], lineIndex++);
+                }
+                if (group.length > 2) {
+                    addLine(svg, group[group.length - 1], group[0], lineIndex++);
+                }
+            });
+        }
+
+        function addLine(svg, idxA, idxB, lineIndex) {
+            const a = starPositions[idxA];
+            const b = starPositions[idxB];
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', a.x);
+            line.setAttribute('y1', a.y);
+            line.setAttribute('x2', b.x);
+            line.setAttribute('y2', b.y);
+            line.id = 'line-' + lineIndex;
+            line.dataset.startStar = String(idxA);
+            line.dataset.endStar = String(idxB);
+            const len = Math.hypot(b.x - a.x, b.y - a.y);
+            line.dataset.lineLength = String(len);
+            line.setAttribute('stroke-dasharray', String(len));
+            line.setAttribute('stroke-dashoffset', String(len));
+            svg.appendChild(line);
+        }
+
+        /** 心形星星全部点亮后，沿轮廓顺序逐段画出连线 */
+        function resetHeartLines() {
+            heartLinesConnected = false;
+            isDrawingHeart = false;
+            if (heartConnectTimer) {
+                clearTimeout(heartConnectTimer);
+                heartConnectTimer = null;
+            }
+            document.querySelectorAll('.constellation-svg line').forEach(line => {
+                line.classList.remove('draw');
+                const len = line.dataset.lineLength || '0';
+                line.setAttribute('stroke-dashoffset', len);
+                line.style.opacity = '0';
+            });
+        }
+
+        function isHeartFullyDrawn() {
+            const lines = document.querySelectorAll('.constellation-svg line');
+            return lines.length > 0 &&
+                Array.from(lines).every(l => l.classList.contains('draw'));
+        }
+
+        function drawHeartLinesAnimated() {
+            return new Promise((resolve) => {
+                if (isHeartFullyDrawn()) {
+                    resolve();
+                    return;
+                }
+                if (litStarSet.size < starPositions.length) {
+                    resolve();
+                    return;
+                }
+                if (isDrawingHeart) {
+                    const waitDone = setInterval(() => {
+                        if (!isDrawingHeart || isHeartFullyDrawn()) {
+                            clearInterval(waitDone);
+                            resolve();
+                        }
+                    }, 80);
+                    return;
+                }
+
+                const lines = document.querySelectorAll('.constellation-svg line');
+                isDrawingHeart = true;
+                heartLinesConnected = true;
+
+                lines.forEach((line, i) => {
+                    setTimeout(() => {
+                        line.classList.add('draw');
+                        line.setAttribute('stroke-dashoffset', '0');
+                    }, i * LINE_STAGGER_MS);
+                });
+
+                const drawTotal = lines.length
+                    ? (lines.length - 1) * LINE_STAGGER_MS + LINE_DRAW_MS + 400
+                    : 0;
+                setTimeout(() => {
+                    isDrawingHeart = false;
+                    resolve();
+                }, drawTotal);
+            });
+        }
+
+        function scheduleHeartConnect() {
+            if (litStarSet.size < starPositions.length) return;
+            if (isHeartFullyDrawn() || isDrawingHeart) return;
+            if (heartConnectTimer) clearTimeout(heartConnectTimer);
+            heartConnectTimer = setTimeout(() => {
+                heartConnectTimer = null;
+                drawHeartLinesAnimated();
+            }, CONNECT_PAUSE_MS);
+        }
+
+        function lightRemainingStarsQuick() {
+            return new Promise((resolve) => {
+                const toLight = [];
+                for (let i = 0; i < starPositions.length; i++) {
+                    if (!litStarSet.has(i)) toLight.push(i);
+                }
+                if (toLight.length === 0) {
+                    resolve();
+                    return;
+                }
+                toLight.forEach((idx, i) => {
+                    setTimeout(() => {
+                        litStarSet.add(idx);
+                        activateStar(idx);
+                        if (i === toLight.length - 1) {
+                            setTimeout(resolve, 280);
+                        }
+                    }, i * 65);
+                });
+            });
+        }
+
+        async function revealFinalCardWhenReady() {
+            stopAutoPlay();
+            await lightRemainingStarsQuick();
+            await new Promise(r => setTimeout(r, CONNECT_PAUSE_MS));
+            await drawHeartLinesAnimated();
+            showFinalCard();
+        }
+
+        function activateStar(starIndex) {
+            const star = document.getElementById('star-' + starIndex);
+            if (!star) return;
+            star.style.animationDelay = (Math.random() * 2.2) + 's';
+            star.style.animationDuration = (2 + Math.random() * 1.8) + 's';
+            star.classList.add('active');
+        }
+
+        function resetAllStars() {
+            litStarSet.clear();
+            document.querySelectorAll('.main-star').forEach(star => {
+                star.classList.remove('active');
+                star.style.animationDelay = '';
+                star.style.animationDuration = '';
+            });
+            resetHeartLines();
+        }
+
+        // ==================== 开场 ====================
+        function createIntroStars() {
+            const container = document.getElementById('introStars');
+            if (!container || container.childElementCount > 0) return;
+            for (let i = 0; i < 80; i++) {
+                const star = document.createElement('div');
+                star.className = 'intro-bg-star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = (Math.random() * 3) + 's';
+                container.appendChild(star);
+            }
+        }
+
+        function enterStarfield() {
+            document.getElementById('introScene').classList.add('opened');
+            setTimeout(() => {
+                document.getElementById('starfield').classList.add('active');
+                document.getElementById('controls').style.display = 'flex';
+                init();
+                startShow();
+            }, 1000);
+        }
+
+        createIntroStars();
+        document.getElementById('introStarBtn').addEventListener('click', enterStarfield);
+
+        // ==================== 演出控制 ====================
+        function startShow() {
+            currentIndex = 0;
+            autoRevealScheduled = false;
+            showLine(0);
+            startAutoPlay();
+        }
+
+        function showLine(index) {
+            if (index >= messages.length) {
+                revealFinalCardWhenReady();
+                return;
+            }
+
+            currentIndex = index;
+            const textEl = document.getElementById('textLine');
+            
+            // 打字机效果
+            typeWriter(messages[index], textEl);
+            
+            // 点亮对应星星
+            lightUpStars(index);
+            
+            // 更新进度
+            updateProgress(index);
+            
+            // 随机流星
+            if (Math.random() > 0.6) {
+                createShootingStar();
+            }
+        }
+
+        function typeWriter(text, element) {
+            element.innerHTML = '<span class="cursor"></span>';
+            element.classList.add('show');
+            isTyping = true;
+            
+            let i = 0;
+            const speed = 100; // 打字速度
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerHTML = text.substring(0, i + 1) + '<span class="cursor"></span>';
+                    i++;
+                    setTimeout(type, speed);
+                } else {
+                    element.innerHTML = text;
+                    isTyping = false;
+                }
+            }
+            
+            type();
+        }
+
+        function lightUpStars(messageIndex) {
+            const totalStars = starPositions.length;
+            const totalMessages = messages.length;
+            // 按话术进度计算「此刻应亮几颗」，最后一句刚好亮满
+            const targetLit = Math.min(
+                totalStars,
+                Math.round(((messageIndex + 1) / totalMessages) * totalStars)
+            );
+
+            const toLight = [];
+            while (litStarSet.size < targetLit) {
+                const unlit = [];
+                for (let i = 0; i < totalStars; i++) {
+                    if (!litStarSet.has(i)) unlit.push(i);
+                }
+                if (unlit.length === 0) break;
+                const pick = unlit[Math.floor(Math.random() * unlit.length)];
+                litStarSet.add(pick);
+                toLight.push(pick);
+            }
+
+            const willCompleteHeart = targetLit >= totalStars;
+
+            if (toLight.length === 0) {
+                if (willCompleteHeart) scheduleHeartConnect();
+                return;
+            }
+
+            toLight.forEach((starIdx, i) => {
+                setTimeout(() => activateStar(starIdx), i * 180);
+            });
+
+            // 心形将在此句亮满：等本批星星都点亮后再连线
+            if (willCompleteHeart) {
+                const waitStars = toLight.length * 180 + 280;
+                setTimeout(scheduleHeartConnect, waitStars);
+            }
+        }
+
+        function updateProgress(index) {
+            const progress = ((index + 1) / messages.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function createShootingStar() {
+            const star = document.createElement('div');
+            star.className = 'shooting-star';
+            star.style.top = Math.random() * 50 + '%';
+            star.style.left = '0';
+            document.getElementById('starfield').appendChild(star);
+            setTimeout(() => star.remove(), 2000);
+        }
+
+        // ==================== 播放控制 ====================
+        function startAutoPlay() {
+            isPlaying = true;
+            autoRevealScheduled = false;
+            document.getElementById('playBtn').textContent = '暂停';
+            
+            autoPlayInterval = setInterval(() => {
+                if (!isTyping && currentIndex < messages.length - 1) {
+                    showLine(currentIndex + 1);
+                } else if (!isTyping && currentIndex >= messages.length - 1 && !autoRevealScheduled) {
+                    stopAutoPlay();
+                    autoRevealScheduled = true;
+                    // 最后一句展示片刻后，等连线完成再进告白页
+                    setTimeout(() => revealFinalCardWhenReady(), 2200);
+                }
+            }, 4000);
+        }
+
+        function stopAutoPlay() {
+            isPlaying = false;
+            document.getElementById('playBtn').textContent = '继续';
+            clearInterval(autoPlayInterval);
+        }
+
+        function togglePlay() {
+            if (isPlaying) {
+                stopAutoPlay();
+            } else {
+                if (currentIndex >= messages.length - 1) {
+                    restart();
+                } else {
+                    startAutoPlay();
+                }
+            }
+        }
+
+        function nextLine() {
+            stopAutoPlay();
+            if (currentIndex < messages.length - 1) {
+                showLine(currentIndex + 1);
+            } else {
+                revealFinalCardWhenReady();
+            }
+        }
+
+        function skipToEnd() {
+            currentIndex = messages.length - 1;
+            const textEl = document.getElementById('textLine');
+            textEl.innerHTML = messages[currentIndex];
+            textEl.classList.add('show');
+            isTyping = false;
+            updateProgress(currentIndex);
+            revealFinalCardWhenReady();
+        }
+
+        // ==================== 表白页花饰（A 花瓣 + C 底部花开） ====================
+        let petalAnimHandles = [];
+
+        function stopPetalAnimations() {
+            petalAnimHandles.forEach(a => {
+                try { a.cancel(); } catch (e) { /* ignore */ }
+            });
+            petalAnimHandles = [];
+        }
+
+        function runPetalFall(petal, container) {
+            const h = container.clientHeight || window.innerHeight;
+            const drift = (Math.random() - 0.5) * 90;
+            const rotEnd = 300 + Math.random() * 240;
+            const dur = 5500 + Math.random() * 4500;
+            const delay = Math.random() * 2500;
+
+            petal.style.left = (3 + Math.random() * 94) + '%';
+
+            if (typeof petal.animate !== 'function') {
+                petal.classList.add('fallback-anim');
+                petal.style.animationDuration = (dur / 1000) + 's';
+                petal.style.animationDelay = (delay / 1000) + 's';
+                return;
+            }
+
+            const anim = petal.animate([
+                { top: '-24px', opacity: 0.95, transform: 'rotate(0deg) translateX(0) scale(1)' },
+                { top: (h + 30) + 'px', opacity: 0.4, transform: `rotate(${rotEnd}deg) translateX(${drift}px) scale(0.75)` }
+            ], {
+                duration: dur,
+                delay: delay,
+                iterations: Infinity,
+                easing: 'linear'
+            });
+
+            petalAnimHandles.push(anim);
+        }
+
+        function initCardPetals() {
+            const overlay = document.getElementById('petalOverlay');
+            if (!overlay) return;
+
+            stopPetalAnimations();
+            overlay.innerHTML = '';
+
+            const count = 18;
+            for (let i = 0; i < count; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'card-petal';
+                overlay.appendChild(petal);
+                runPetalFall(petal, overlay);
+            }
+        }
+
+        function resetCardBloom() {
+            document.querySelectorAll('.bloom-flower').forEach(el => {
+                el.style.animation = 'none';
+                void el.offsetWidth;
+                el.style.animation = '';
+            });
+        }
+
+        // ==================== 最终卡片 ====================
+        function showFinalCard() {
+            stopAutoPlay();
+            setTimeout(() => {
+                const card = document.getElementById('finalCard');
+                card.classList.add('active');
+                setTimeout(() => {
+                    initCardPetals();
+                }, 80);
+            }, 500);
+        }
+
+        function restart() {
+            document.getElementById('finalCard').classList.remove('active');
+            stopPetalAnimations();
+            const overlay = document.getElementById('petalOverlay');
+            if (overlay) overlay.innerHTML = '';
+            resetCardBloom();
+            resetAllStars();
+            document.getElementById('progressFill').style.width = '0%';
+            document.getElementById('textLine').textContent = '';
+            document.getElementById('textLine').classList.remove('show');
+
+            setTimeout(() => {
+                startShow();
+            }, 500);
+        }
+    </script>
+</body>
+</html>
